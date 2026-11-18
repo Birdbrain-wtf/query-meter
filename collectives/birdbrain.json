@@ -22,5 +22,11 @@
   ],
   "open": true,
   "contact": "https://matrix.to/#/#birdbrain:matrix.org",
-  "door": "https://birdbrain.wtf/query"
+  "door": "https://birdbrain.wtf/query",
+  "demand": {
+    "keys": [
+      "SELECT key FROM vertices",
+      "SELECT id FROM concepts"
+    ]
+  }
 }

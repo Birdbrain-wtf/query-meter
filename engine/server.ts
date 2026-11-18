@@ -53,6 +53,12 @@ export interface CollectiveConfig {
   contact?: string;
   /** The public URL a buyer reaches this meter at. */
   door?: string;
+  /** The demand ledger. Each statement returns one column of node identifiers
+   *  from the full corpus. After a paid query, every returned value that is one
+   *  of those identifiers is recorded against that node. This is a record of
+   *  what outsiders paid to read, kept apart from the contribution record:
+   *  paying to read is not contributing (ADR 0034 §5). Off unless set. */
+  demand?: { keys: string[] };
 }
 
 function pickSlug(): string {
@@ -92,6 +98,31 @@ const MAX_ROWS = cfg.pricing?.max_rows ?? 500;
 const full = new Database(DB_FULL, { readonly: true });
 const sample = new Database(DB_SAMPLE, { readonly: true });
 const CONTACT = cfg.contact || "hello@decent.partners";
+
+// ------------------------------------------------------------ demand ledger
+//
+// Which parts of the world model paid queries returned. It names nodes, never
+// the buyer (the payer stays in the request log, joined by claim_id), and it
+// pays nobody: what members do with it is theirs to decide (ADR 0034 §2-3).
+
+const DEMAND_KEYS = new Set<string>();
+for (const q of cfg.demand?.keys ?? []) {
+  for (const r of full.query(q).values()) if (r[0] != null) DEMAND_KEYS.add(String(r[0]));
+}
+
+function demandOf(rows: any[]): { nodes: Record<string, number>; matched_rows: number } {
+  const nodes: Record<string, number> = {};
+  let matched_rows = 0;
+  for (const row of rows) {
+    const seen = new Set<string>();
+    for (const v of Object.values(row ?? {})) {
+      if (typeof v === "string" && DEMAND_KEYS.has(v)) seen.add(v);
+    }
+    if (seen.size) matched_rows++;
+    for (const k of seen) nodes[k] = (nodes[k] ?? 0) + 1;
+  }
+  return { nodes, matched_rows };
+}
 
 // Buyer SQL runs in a child process with a deadline (engine/sql-runner.ts), at
 // most SQL_SLOTS at once, so one expensive query cannot hold the meter.
@@ -405,6 +436,11 @@ const CATALOGUE = {
   limits: `Each query runs for at most ${SQL_TIMEOUT_MS / 1000}s. Results are capped at ${MAX_ROWS} rows.`,
   contact: CONTACT,
   free_tier: cfg.sample,
+  record: cfg.demand
+    ? "After a paid query, the meter records which graph nodes the rows contained, " +
+      "with the amount paid and no buyer identity. Members use it to see what outsiders pay to read. " +
+      "Revenue goes to the collective's treasury and is not yet distributed to contributors."
+    : undefined,
   tables: cfg.tables,
   flow: [
     "GET  /                     — this catalogue",
@@ -579,6 +615,27 @@ Bun.serve({
         tx: v.tx,
         claim_id: v.receipt,
       });
+      if (DEMAND_KEYS.size) {
+        try {
+          const d = demandOf(results);
+          appendFileSync(
+            join(STATE_DIR, `${SLUG}-demand.jsonl`),
+            JSON.stringify({
+              at: new Date().toISOString(),
+              collective: SLUG,
+              claim_id: v.receipt,
+              block_number: v.block_number,
+              query_hash: hex(sha256(sql)),
+              paid_dusd: v.paid_dusd,
+              rows: results.length,
+              matched_rows: d.matched_rows,
+              nodes: d.nodes,
+            }) + "\n",
+          );
+        } catch (e: any) {
+          console.error(`could not write the demand ledger: ${e.message}`);
+        }
+      }
       return json({
         paid: true,
         collective: SLUG,

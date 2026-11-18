@@ -102,6 +102,12 @@ Finality takes 30 to 60 seconds. That is the cost of settling first.
 Every request: the query, the quote, and for a purchase the block, extrinsic,
 payer address and amount. Nothing else about you.
 
+After a purchase the meter also notes which graph nodes your rows contained,
+with the amount paid and without your address. That tells Birdbrain's members
+which parts of their world model people outside pay to read. The money goes to
+Birdbrain's treasury and is not yet shared out to contributors. How it is spent
+is for the members to decide.
+
 ## Limits
 
 - SELECT only, one statement, 500 rows at most, 5 seconds per query.

@@ -21,7 +21,7 @@ The price is a base fee plus a fee per row returned (0.01 dUSD and 0.001 dUSD on
 | `collectives/birdbrain.json` | Birdbrain's config: recipient, databases, pricing, catalogue text. |
 | `adapters/birdbrain-graph.ts` | Builds what is sold from the full corpus, with transcripts and speaker names removed. |
 | `kit/` | What a buyer gets, also served by the meter at `/query/buy.ts` and `/query/README.md`. |
-| `scripts/` | Our own test buyer. |
+| `scripts/` | Our own test buyer, and `demand.ts`, which reads the demand ledger: which graph nodes paid queries returned. A demand signal for members, not a payout. |
 | `deploy-birdbrain.sh` | Deploys to Birdbrain's server behind nginx. |
 | `birdbrain-402/` | The first version, from August 2026, kept for its history and its replay tests. |
 
