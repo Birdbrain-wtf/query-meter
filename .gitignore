@@ -1,0 +1,9 @@
+node_modules/
+out/
+state/
+secrets/
+buyers.json
+buyer-key.txt
+*.db
+*.db-shm
+*.db-wal

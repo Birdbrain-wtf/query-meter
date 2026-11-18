@@ -1,0 +1,26 @@
+{
+  "slug": "birdbrain",
+  "name": "birdbrain/world",
+  "description": "Birdbrain's world model as SQL: the knowledge graph published to Fangorn and anchored on Kusama Asset Hub (sessions, people, topics, questions, decisions and the edges between them), plus the concepts extracted from the Chaos Sessions. Transcripts are not sold, and no concept carries who said it. Built by adapters/birdbrain-graph.ts.",
+  "recipient": "DJe2JJvcMNjxjkhi3UsoNZwSaYnHQqQB7AAavEAz1wDrJGh",
+  "recipient_note": "Birdbrain's own operator account. Query revenue goes to the collective that made the material, never to a supplier. Until 2026-11-18 this meter settled to Decent Partners (FvrbaMus…), carried over from birdbrain-402.",
+  "db": {
+    "full": "out/birdbrain-graph.db",
+    "sample": "out/birdbrain-graph-sample.db"
+  },
+  "sample": "Chaos Sessions CS01-CS03 and every node reachable from them.",
+  "tables": {
+    "vertices": "world-model nodes: session · person · concept · topic · question · decision",
+    "edges": "attended · has-topic · surfaces · raises · raised",
+    "concepts": "concepts extracted from each session, with date and timestamp (no speaker)",
+    "vertices_fts": "FTS5 over node labels and summaries"
+  },
+  "count_tables": [
+    "vertices",
+    "edges",
+    "concepts"
+  ],
+  "open": true,
+  "contact": "https://matrix.to/#/#birdbrain:matrix.org",
+  "door": "https://birdbrain.wtf/query"
+}
